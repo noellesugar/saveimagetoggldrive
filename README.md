@@ -1,5 +1,65 @@
 # saveimagetoggldrive
-This code is written in Google Apps Script and is used to save images from a URL, write the path of the saved images to a Google Sheet, and copy the saved images to a specific Google Drive folder.
+## This code is written in Google Apps Script and is used to save images from a URL, write the path of the saved images to a Google Sheet, and copy the saved images to a specific Google Drive folder.
+
+```
+// Define a function to save images and write their path
+function saveImagesAndWritePath() {
+  // Define a counter starting from 1
+  var counter = 1;
+  // Get the active sheet in the current spreadsheet
+  var sheet = SpreadsheetApp.getActiveSheet();
+  // Get the last row in the sheet
+  var lastRow = sheet.getLastRow();
+  // Get the values in column E starting from row 2 to the last row
+  var data = sheet.getRange("E2:E" + lastRow).getValues();
+  
+  // Loop through the data array
+  for (var i = 0; i < data.length; i++) {
+    // Get the URL from the current data row
+    var url = data[i][0];
+    // Skip the iteration if the URL is not present
+    if (!url) continue;
+    
+    // Use a try-catch statement to handle any potential errors
+    try {
+      // Fetch the contents of the URL using the URL Fetch API
+      var response = UrlFetchApp.fetch(url);
+      // Get the binary data of the response as a Blob object
+      var blob = response.getBlob();
+      // Create a file in Google Drive using the Blob data
+      var file = DriveApp.createFile(blob);
+      
+      // Get the ID of the newly created file
+      var fileId = file.getId();
+      // Get the URL of the newly created file
+      var fileUrl = file.getUrl();
+      // Define the path for the file in Google Drive
+      var googleDrivePath = "/Volumes/GoogleDrive/My\ Drive/Images/" + counter + ".png";
+      // Define the path for the file in a local desktop folder
+      var macPath = "/Users/noelle/Desktop/Images1/" + counter + ".png";
+      
+      // Write the Google Drive path to column F (6th column) of the current row
+      sheet.getRange(i + 2, 6).setValue(googleDrivePath);
+      // Write the local desktop folder path to column G (7th column) of the current row
+      sheet.getRange(i + 2, 7).setValue(macPath);
+      
+      // Get a specific folder in Google Drive using its ID
+      var folder = DriveApp.getFolderById("1hSOSTi5DaSOf1GpWunINoDitJaH68MgJ");
+      // Make a copy of the file in the specified folder
+      var newFile = file.makeCopy(folder);
+      // Set the name of the copy to the current counter value
+      newFile.setName(counter + ".png");
+      // Increment the counter by 1
+      counter++;
+    } catch (e) {
+      // Write an error message to column F (6th column) of the current row
+      sheet.getRange(i + 2, 6).setValue("Error: " + e.message);
+      // Write an error message to column G (7th column) of the current row
+      sheet.getRange(i + 2, 7).setValue("Error: " + e.message);
+    }
+  }
+}
+```
 
 // Define a function to save images and write their path
 function saveImagesAndWritePath() {
